@@ -111,12 +111,28 @@ class CustomExtractor(FeatureExtractor):
     """
 
     distance_map = {}
+    map_check = False
 
-    def __init__(self):
-        print "hi"
+    def fillMap(self, walls):
+        for temp_x in range(0, walls.width):
+            for temp_y in range(0, walls.height):
+                fringe = [(temp_x, temp_y, 0)]
+                
+                while fringe:
+                    pos_x, pos_y, dist = fringe.pop(0)
+                    if ((temp_x, temp_y), (pos_x, pos_y)) in self.distance_map:
+                        continue
+                    self.distance_map[((temp_x, temp_y), (pos_x, pos_y))] = dist
+
+                    nbrs = Actions.getLegalNeighbors((pos_x, pos_y), walls)
+                    for nbr_x, nbr_y in nbrs:
+                        fringe.append((nbr_x, nbr_y, dist+1))
 
     def dis(self, pos1, pos2):
-        return abs(pos1[0]-pos2[0]) + abs(pos1[1] - pos2[1])
+        pos1 = (int(pos1[0]), int(pos1[1]))
+        pos2 = (int(pos2[0]), int(pos2[1]))
+        return self.distance_map[(pos1, pos2)]
+        #return abs(pos1[0]-pos2[0]) + abs(pos1[1] - pos2[1])
 
     def getFeatures(self, state, action):
         "*** YOUR CODE HERE ***"
@@ -124,6 +140,10 @@ class CustomExtractor(FeatureExtractor):
         walls = state.getWalls()
         ghosts = state.getGhostPositions()
         ghostsStates = state.getGhostStates()
+
+        if not self.map_check:
+            self.map_check = True;
+            self.fillMap(walls)
 
         features = util.Counter()
 
