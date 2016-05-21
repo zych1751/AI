@@ -64,11 +64,6 @@ def closestFood(pos, food, walls):
     # no food found
     return None
 
-def dis(pos1, pos2, walls):
-    return abs(pos1[0]-pos2[0]) + abs(pos1[1] - pos2[1])
-
-def disGhost(pos, ghost, walls):
-    return min(dis(pos, ghost[0], walls), dis(pos, ghost[1], walls))
 
 class SimpleExtractor(FeatureExtractor):
     """
@@ -114,13 +109,21 @@ class CustomExtractor(FeatureExtractor):
     """
     Generate your own feature
     """
+
+    distance_map = {}
+
+    def __init__(self):
+        print "hi"
+
+    def dis(self, pos1, pos2):
+        return abs(pos1[0]-pos2[0]) + abs(pos1[1] - pos2[1])
+
     def getFeatures(self, state, action):
         "*** YOUR CODE HERE ***"
         food = state.getFood()
         walls = state.getWalls()
         ghosts = state.getGhostPositions()
         ghostsStates = state.getGhostStates()
-        ghostScaredTime =  state.data.agentStates[1].scaredTimer
 
         features = util.Counter()
 
@@ -135,23 +138,34 @@ class CustomExtractor(FeatureExtractor):
         features["#-of-ghosts-1-step-away"] = sum((next_x, next_y) in Actions.getLegalNeighbors(g, walls) for g in ghosts)
         
         dist = closestFood((next_x, next_y), food, walls)
-        ghost_dist = disGhost((next_x, next_y), ghosts, walls)
-        prev_dist = disGhost((x, y), ghosts, walls)
+        ghost1_dist = self.dis((next_x, next_y), ghosts[0])
+        prev1_dist = self.dis((x, y), ghosts[0])
+        ghost2_dist = self.dis((next_x, next_y), ghosts[1])
+        prev2_dist = self.dis((x, y), ghosts[1])
+        ghostScaredTime1 = state.data.agentStates[1].scaredTimer
+        ghostScaredTime2 = state.data.agentStates[2].scaredTimer
 
-        if features["#-of-ghosts-1-step-away"] and ghostScaredTime > ghost_dist/2:
-            if prev_dist > ghost_dist:
-                if ghost_dist > 0 and ghost_dist < 6:
-                    features["eats-ghost"] = 1 / float(ghost_dist) * 3
-                if ghost_dist < 0.5:
+        checked = False
+        if ghostScaredTime1 > ghost1_dist/2:
+            if prev1_dist > ghost1_dist:
+                if ghost1_dist > 0 and ghost1_dist < 6:
+                    checked = True
+                    features["eats-ghost"] = 1 / float(ghost1_dist) * 3
+                if ghost1_dist < 0.5:
+                    checked = True
                     features["eats-ghost"] = 1.0 * 3
-            else:
-                if dist is not None:
-                    # make the distance a number less than one otherwise the update
-                    # will diverge wildly
-                    features["closest-food"] = float(dist) / (walls.width * walls.height)
-                elif not features["#-of-ghosts-1-step-away"] and food[next_x][next_y]:
-                    features["eats-food"] = 1.0
-        else:
+        elif ghostScaredTime2 > ghost2_dist/2:
+            if prev2_dist > ghost2_dist:
+                if ghost2_dist > 0 and ghost2_dist < 6:
+                    checked = True
+                    features["eats-ghost"] = 1 / float(ghost2_dist) * 3
+                if ghost2_dist < 0.5:
+                    checked = True
+                    features["eats-ghost"] = 1.0 * 3
+        elif (prev1_dist < 3 and prev1_dist > ghost1_dist) or (prev2_dist < 3 and prev2_dist > ghost2_dist):
+            features["escape-ghost"] = -1.0
+            
+        if not checked:
             if dist is not None:
                 # make the distance a number less than one otherwise the update
                 # will diverge wildly
