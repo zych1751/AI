@@ -129,10 +129,10 @@ class CustomExtractor(FeatureExtractor):
                         fringe.append((nbr_x, nbr_y, dist+1))
 
     def dis(self, pos1, pos2):
-        pos1 = (int(pos1[0]), int(pos1[1]))
-        pos2 = (int(pos2[0]), int(pos2[1]))
-        return self.distance_map[(pos1, pos2)]
-        #return abs(pos1[0]-pos2[0]) + abs(pos1[1] - pos2[1])
+        #pos1 = (int(pos1[0]), int(pos1[1]))
+        #pos2 = (int(pos2[0]), int(pos2[1]))
+        #return self.distance_map[(pos1, pos2)]
+        return abs(pos1[0]-pos2[0]) + abs(pos1[1] - pos2[1])
 
     def getFeatures(self, state, action):
         "*** YOUR CODE HERE ***"
@@ -166,17 +166,17 @@ class CustomExtractor(FeatureExtractor):
         ghostScaredTime2 = state.data.agentStates[2].scaredTimer
 
         checked = False
-        if ghostScaredTime1 > ghost1_dist/2:
+        if ghostScaredTime1 > ghost1_dist/2 or ghostScaredTime1 > 20:
             if prev1_dist > ghost1_dist:
-                if ghost1_dist > 0 and ghost1_dist < 6:
+                if ghost1_dist > 0 and ghost1_dist < 987654321:
                     checked = True
                     features["eats-ghost"] = 1 / float(ghost1_dist) * 3
                 if ghost1_dist < 0.5:
                     checked = True
                     features["eats-ghost"] = 1.0 * 3
-        elif ghostScaredTime2 > ghost2_dist/2:
+        elif ghostScaredTime2 > ghost2_dist/2 or ghostScaredTime2 > 20:
             if prev2_dist > ghost2_dist:
-                if ghost2_dist > 0 and ghost2_dist < 6:
+                if ghost2_dist > 0 and ghost2_dist < 987654321:
                     checked = True
                     features["eats-ghost"] = 1 / float(ghost2_dist) * 3
                 if ghost2_dist < 0.5:
@@ -186,7 +186,7 @@ class CustomExtractor(FeatureExtractor):
             features["escape-ghost"] = -1.0
             
         if not checked:
-            if dist is not None:
+            if dist is not None and ghostScaredTime1 < 10 and ghostScaredTime2 < 10:
                 # make the distance a number less than one otherwise the update
                 # will diverge wildly
                 features["closest-food"] = float(dist) / (walls.width * walls.height)
