@@ -170,18 +170,18 @@ class CustomExtractor(FeatureExtractor):
             if prev1_dist > ghost1_dist:
                 if ghost1_dist > 0 and ghost1_dist < 987654321:
                     checked = True
-                    features["eats-ghost"] = 1 / float(ghost1_dist) 
-                if ghost1_dist < 0.5:
+                    features["eats-ghost"] += 1 / float(ghost1_dist) 
+                elif ghost1_dist < 0.5:
                     checked = True
-                    features["eats-ghost"] = 1.0
-        elif ghostScaredTime2 > ghost2_dist/2 or ghostScaredTime2 > 20:
+                    features["eats-ghost"] += 1.0
+        if ghostScaredTime2 > ghost2_dist/2 or ghostScaredTime2 > 20:
             if prev2_dist > ghost2_dist:
                 if ghost2_dist > 0 and ghost2_dist < 987654321:
                     checked = True
-                    features["eats-ghost"] = 1 / float(ghost2_dist)
-                if ghost2_dist < 0.5:
+                    features["eats-ghost"] += 1 / float(ghost2_dist)
+                elif ghost2_dist < 0.5:
                     checked = True
-                    features["eats-ghost"] = 1.0
+                    features["eats-ghost"] += 1.0
         if (ghostScaredTime1 < 3 and prev1_dist < 3 and prev1_dist > ghost1_dist) or (ghostScaredTime2 < 3 and prev2_dist < 3 and prev2_dist > ghost2_dist):
             features["escape-ghost"] = -1.0
             checked = True
